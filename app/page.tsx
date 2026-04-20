@@ -14,20 +14,11 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError("Credenciais inválidas. Certifique-se de ter criado a conta no painel do Supabase antes.")
-      setLoading(false)
-    } else if (data.session) {
-      // Autenticação bem-sucedida! Carregando dashboard
+    
+    // Bypass temporário: Pula a validação do Supabase e vai direto para os projetos
+    setTimeout(() => {
       router.push('/projects')
-    }
+    }, 500)
   }
 
   return (
