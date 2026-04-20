@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useOptimistic, useTransition } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus } from 'lucide-react'
@@ -133,9 +134,9 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
               )}
             </div>
             <div className="p-6 pt-0 mt-auto">
-              <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 w-full transition-colors">
+              <Link href={`/projects/${project.id}`} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 w-full transition-colors">
                 Abrir Creative Room
-              </button>
+              </Link>
             </div>
           </div>
         ))}
@@ -149,3 +150,4 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
     </div>
   )
 }
+
