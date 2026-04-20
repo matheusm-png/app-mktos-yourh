@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useOptimistic, useTransition } from 'react'
+import { useState, useEffect, useOptimistic, useTransition } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus } from 'lucide-react'
 
@@ -14,13 +14,24 @@ type Project = {
   created_at: string;
 }
 
-export default function ProjectsClient({ initialProjects }: { initialProjects: Project[] }) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
+export default function ProjectsClient() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  
   const [isPending, startTransition] = useTransition()
   const [optimisticProjects, addOptimisticProject] = useOptimistic(
     projects,
     (state, newProject: Project) => [newProject, ...state]
   )
+
+  useEffect(() => {
+    async function loadProjects() {
+      const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      if (data) setProjects(data)
+      setIsLoading(false)
+    }
+    loadProjects()
+  }, [])
 
   const [isCreating, setIsCreating] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
@@ -122,31 +133,39 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {optimisticProjects.map(project => (
-          <div key={project.id} className="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between">
-            <div className="flex flex-col space-y-1.5 p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold leading-none tracking-tight">{project.name}</h3>
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color || '#4F46E5'}} />
+      {isLoading ? (
+        <div className="py-12 text-center text-muted-foreground w-full col-span-full">
+          Carregando projetos de marketing...
+        </div>
+      ) : (
+        <>
+          {optimisticProjects.map(project => (
+            <div key={project.id} className="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between">
+              <div className="flex flex-col space-y-1.5 p-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold leading-none tracking-tight">{project.name}</h3>
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color || '#4F46E5'}} />
+                </div>
+                {project.description && (
+                  <p className="text-sm text-muted-foreground mt-2">{project.description}</p>
+                )}
               </div>
-              {project.description && (
-                <p className="text-sm text-muted-foreground mt-2">{project.description}</p>
-              )}
+              <div className="p-6 pt-0 mt-auto">
+                <Link href={`/projects/${project.id}`} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 w-full transition-colors">
+                  Abrir Creative Room
+                </Link>
+              </div>
             </div>
-            <div className="p-6 pt-0 mt-auto">
-              <Link href={`/projects/${project.id}`} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 w-full transition-colors">
-                Abrir Creative Room
-              </Link>
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {optimisticProjects.length === 0 && !isCreating && (
-          <div className="col-span-full py-12 text-center text-muted-foreground border border-dashed rounded-xl">
-            Nenhum projeto encontrado. Crie o seu primeiro!
-          </div>
-        )}
-      </div>
+          {optimisticProjects.length === 0 && !isCreating && (
+            <div className="col-span-full py-12 text-center text-muted-foreground border border-dashed rounded-xl">
+              Nenhum projeto encontrado. Crie o seu primeiro!
+            </div>
+          )}
+        </>
+      )}
+    </div>
     </div>
   )
 }
